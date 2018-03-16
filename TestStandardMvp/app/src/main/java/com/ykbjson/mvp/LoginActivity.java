@@ -39,6 +39,10 @@ public class LoginActivity extends AppCompatActivity implements ILoginView {
         loginPresenter=new LoginPresenterImpl(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        init();
+
+    }
+    private void init(){
         // Set up the login form.
         mEmailView = findViewById(R.id.email);
 
@@ -164,6 +168,5 @@ public class LoginActivity extends AppCompatActivity implements ILoginView {
     public void onShowLoginSuccess(String userName) {
         Toast.makeText(this, userName.concat("登录成功！"), Toast.LENGTH_LONG).show();
     }
-
 }
 
