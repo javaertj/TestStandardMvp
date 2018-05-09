@@ -1,1 +1,1 @@
-include ':app', ':themvpapp' , 'mmvpsample', 'mmvp'
+include ':app', ':themvpapp',  ':mmvpcompiler', ':mmvpannotation' , ':mmvpsample', ':mmvp'

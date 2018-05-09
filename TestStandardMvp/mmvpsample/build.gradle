@@ -28,4 +28,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
     implementation project(':mmvp')
+    annotationProcessor project(':mmvpcompiler')
 }

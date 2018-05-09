@@ -12,17 +12,19 @@ import android.widget.Toast;
 
 import com.ykbjson.app.hvp.R;
 import com.ykbjson.lib.mmvp.IMMVPActionHandler;
-import com.ykbjson.lib.mmvp.MMVPArtist;
 import com.ykbjson.lib.mmvp.MMVPAction;
-import com.ykbjson.lib.mmvp.internal.ActionProcess;
+import com.ykbjson.lib.mmvp.MMVPArtist;
+import com.ykbjson.lib.mmvp.annotation.ActionProcess;
+import com.ykbjson.lib.mmvp.annotation.MMVPActionProcessor;
 import com.ykbjson.lib.mmvp.internal.BindPresenter;
 
 /**
  * 包名：com.ykbjson.app.hvp.login
- * 描述：
+ * 描述：登录页面展示
  * 创建者：yankebin
  * 日期：2018/4/13
  */
+@MMVPActionProcessor
 @BindPresenter(LoginPresenter.class)
 public class LoginActivity extends AppCompatActivity implements LoginContract.ILoginView {
     private ProgressDialog progressBar;
@@ -80,7 +82,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.IL
     }
 
     @Override
-    public void handleAction(@NonNull MMVPAction action) {
+    public boolean handleAction(@NonNull MMVPAction action) {
         switch (action.getAction().getAction()) {
             case LoginPresenter.ACTION_NOTIFY_LOGIN_SUCCESS:
                 onLoginSuccess();
@@ -89,6 +91,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.IL
                 onLoginFailed((String) action.getParam("error"));
                 break;
         }
+
+        return true;
     }
 
     @Override

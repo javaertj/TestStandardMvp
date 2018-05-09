@@ -10,8 +10,21 @@ import android.support.annotation.NonNull;
  */
 public interface IMMVPActionHandler {
 
-    void handleAction(@NonNull MMVPAction action);
+    boolean handleAction(@NonNull MMVPAction action);
 
     @NonNull
     IMMVPActionHandler get();
+
+    IMMVPActionHandler EMPTY = new IMMVPActionHandler() {
+        @Override
+        public boolean handleAction(@NonNull MMVPAction action) {
+            return false;
+        }
+
+        @NonNull
+        @Override
+        public IMMVPActionHandler get() {
+            return this;
+        }
+    };
 }

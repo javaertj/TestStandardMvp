@@ -6,16 +6,19 @@ import android.text.TextUtils;
 import com.ykbjson.app.hvp.login.data.LoginResult;
 import com.ykbjson.app.hvp.login.data.source.LoginRepository;
 import com.ykbjson.lib.mmvp.IMMVPActionHandler;
-import com.ykbjson.lib.mmvp.MMVPAction;
 import com.ykbjson.lib.mmvp.IMMVPOnDataCallback;
-import com.ykbjson.lib.mmvp.internal.ActionProcess;
+import com.ykbjson.lib.mmvp.MMVPAction;
+import com.ykbjson.lib.mmvp.annotation.ActionProcess;
+import com.ykbjson.lib.mmvp.annotation.MMVPActionProcessor;
+
 
 /**
  * 包名：com.ykbjson.app.hvp.login
- * 描述：
+ * 描述：登录逻辑处理
  * 创建者：yankebin
  * 日期：2018/4/13
  */
+@MMVPActionProcessor
 public class LoginPresenter implements LoginContract.ILoginPresenter {
     public static final String ACTION_DO_LOGIN = "LoginPresenter.action.ACTION_DO_LOGIN";
     public static final String ACTION_NOTIFY_LOGIN_FAILED = "LoginPresenter.action.ACTION_NOTIFY_LOGIN_FAILED";
@@ -56,12 +59,14 @@ public class LoginPresenter implements LoginContract.ILoginPresenter {
     }
 
     @Override
-    public void handleAction(@NonNull MMVPAction action) {
+    public boolean handleAction(@NonNull MMVPAction action) {
         switch (action.getAction().getAction()) {
             case ACTION_DO_LOGIN:
                 doLogin(action.transform());
                 break;
         }
+
+        return true;
     }
 
     @NonNull

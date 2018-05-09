@@ -4,6 +4,10 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/TestStandardMvp.iml" filepath="$PROJECT_DIR$/TestStandardMvp.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mmvp/mmvp.iml" filepath="$PROJECT_DIR$/mmvp/mmvp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mmvpannotation/mmvpannotation.iml" filepath="$PROJECT_DIR$/mmvpannotation/mmvpannotation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mmvpcompiler/mmvpcompiler.iml" filepath="$PROJECT_DIR$/mmvpcompiler/mmvpcompiler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mmvpsample/mmvpsample.iml" filepath="$PROJECT_DIR$/mmvpsample/mmvpsample.iml" />
       <module fileurl="file://$PROJECT_DIR$/themvpapp/themvpapp.iml" filepath="$PROJECT_DIR$/themvpapp/themvpapp.iml" />
     </modules>
   </component>

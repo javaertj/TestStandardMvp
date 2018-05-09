@@ -3,6 +3,7 @@ package com.ykbjson.lib.mmvp;
 import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
@@ -10,9 +11,11 @@ import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.ykbjson.lib.mmvp.internal.ActionProcess;
+import com.ykbjson.lib.mmvp.annotation.ActionProcess;
+import com.ykbjson.lib.mmvp.annotation.MMVPActionProcessor;
 import com.ykbjson.lib.mmvp.internal.BindPresenter;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -35,20 +38,30 @@ public final class MMVPArtist {
      * 注册View缓存
      */
     @VisibleForTesting
-    private static final List<MMVPView> VIEW_CACHE = new LinkedList<>();
+    static final List<MMVPView> VIEW_CACHE = new LinkedList<>();
     /**
      * View和Presenter关系缓存
      */
     @VisibleForTesting
-    private static final Map<Class<?>, List<MMVPPresenter>> VIEW_PRESENTERS_CACHE = new LinkedHashMap<>();
+    static final Map<Class<?>, List<MMVPPresenter>> VIEW_PRESENTERS_CACHE = new LinkedHashMap<>();
 
     /**
      * 注册了{@link ActionProcess}注解的方法缓存
      */
     @VisibleForTesting
-    private static final Map<Class<?>, Map<String, Method>> METHODS_CACHE = new LinkedHashMap<>();
+    static final Map<Class<?>, Map<String, Method>> METHODS_CACHE = new LinkedHashMap<>();
+
+
+    /**
+     * 注册了{@link MMVPActionProcessor}注解的类的构造方法缓存
+     */
+    @VisibleForTesting
+    static final Map<Class<?>, Constructor<? extends IMMVPActionHandler>> EXECUTORS = new LinkedHashMap<>();
+
 
     private static boolean enableLog = true;
+
+    private static boolean useApt = true;
 
     @SuppressLint("HandlerLeak")
     private static Handler dispatchActionHandler = new Handler() {
@@ -75,6 +88,15 @@ public final class MMVPArtist {
      */
     public static void setEnableLog(boolean enableLog) {
         MMVPArtist.enableLog = enableLog;
+    }
+
+    /**
+     * apt开关
+     *
+     * @param useApt
+     */
+    public static void setUseApt(boolean useApt) {
+        MMVPArtist.useApt = useApt;
     }
 
     /**
@@ -161,7 +183,7 @@ public final class MMVPArtist {
             }
             return;
         }
-        if (!execute(action, find)) {
+        if (!(useApt ? executeByApt(action, find) : execute(action, find))) {
             find.handleAction(action);
         }
     }
@@ -202,7 +224,7 @@ public final class MMVPArtist {
             }
             return;
         }
-        if (!execute(action, find)) {
+        if (!(useApt ? executeByApt(action, find) : execute(action, find))) {
             find.handleAction(action);
         }
     }
@@ -392,5 +414,99 @@ public final class MMVPArtist {
             }
         }
         return executeMethod;
+    }
+    //-----------------------------2018-05-09新增，APT方式替代反射方式-----------------------------------
+
+    /**
+     * 执行action里目标类需要执行的方法
+     *
+     * @param action {@link MMVPAction}
+     * @param target 要执行action的类
+     * @return
+     */
+    private static boolean executeByApt(@NonNull MMVPAction action, @NonNull Object target) {
+        IMMVPActionHandler executor = createExecutor(target);
+        return executor.handleAction(action);
+    }
+
+
+    /**
+     * 创建{@link IMMVPActionHandler}
+     *
+     * @param target 当前关联的目标对象
+     * @return
+     */
+    private static IMMVPActionHandler createExecutor(@NonNull Object target) {
+        Class<?> targetClass = target.getClass();
+        if (enableLog) {
+            Log.d(TAG, "Looking up executor for " + targetClass.getName());
+        }
+        Constructor<? extends IMMVPActionHandler> constructor = findExecutorConstructorForClass(targetClass);
+
+        if (constructor == null) {
+            return IMMVPActionHandler.EMPTY;
+        }
+
+        //noinspection TryWithIdenticalCatches Resolves to API 19+ only type.
+        try {
+            return constructor.newInstance(target);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Unable to invoke " + constructor, e);
+        } catch (InstantiationException e) {
+            throw new RuntimeException("Unable to invoke " + constructor, e);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            }
+            if (cause instanceof Error) {
+                throw (Error) cause;
+            }
+            throw new RuntimeException("Unable to create executor instance.", cause);
+        }
+    }
+
+
+    /**
+     * 创建{@link IMMVPActionHandler}
+     *
+     * @param cls 当前关联的目标类
+     * @return
+     */
+    @Nullable
+    @CheckResult
+    @UiThread
+    private static Constructor<? extends IMMVPActionHandler> findExecutorConstructorForClass(Class<?> cls) {
+        Constructor<? extends IMMVPActionHandler> executorCtor = EXECUTORS.get(cls);
+        if (executorCtor != null) {
+            if (enableLog) {
+                Log.d(TAG, "Cached in executor map.");
+            }
+            return executorCtor;
+        }
+        String clsName = cls.getName();
+        if (clsName.startsWith("android.") || clsName.startsWith("java.")) {
+            if (enableLog) {
+                Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
+            }
+            return null;
+        }
+        try {
+            Class<?> executorClass = cls.getClassLoader().loadClass(clsName + "_MMVPActionProcessor");
+            //noinspection unchecked
+            executorCtor = (Constructor<? extends IMMVPActionHandler>) executorClass.getConstructor(cls);
+            if (enableLog) {
+                Log.d(TAG, "HIT: Loaded executor class and constructor.");
+            }
+        } catch (ClassNotFoundException e) {
+            if (enableLog) {
+                Log.d(TAG, "Not found. Trying superclass " + cls.getSuperclass().getName());
+            }
+            executorCtor = findExecutorConstructorForClass(cls.getSuperclass());
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Unable to find executor constructor for " + clsName, e);
+        }
+        EXECUTORS.put(cls, executorCtor);
+        return executorCtor;
     }
 }

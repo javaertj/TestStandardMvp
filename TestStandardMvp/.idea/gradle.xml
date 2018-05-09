@@ -9,6 +9,10 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/mmvp" />
+            <option value="$PROJECT_DIR$/mmvpannotation" />
+            <option value="$PROJECT_DIR$/mmvpcompiler" />
+            <option value="$PROJECT_DIR$/mmvpsample" />
             <option value="$PROJECT_DIR$/themvpapp" />
           </set>
         </option>
