@@ -107,7 +107,7 @@ public final class MMVPArtist {
      * @param action      需要执行的操作
      * @return {@link MMVPAction}
      */
-    public static MMVPAction buildAction(Class<?> sourceClass, Class<?> targetClass, String action) {
+    public static synchronized MMVPAction buildAction(Class<?> sourceClass, Class<?> targetClass, String action) {
         MMVPActionDescription actionContent = new MMVPActionDescription();
         actionContent.setAction(action);
         return new MMVPAction(sourceClass, targetClass).setAction(actionContent);
@@ -128,7 +128,7 @@ public final class MMVPArtist {
      * @param action     {@link MMVPAction}
      * @param delayMills 延时毫秒数
      */
-    static void sendAction(@NonNull MMVPAction action, long delayMills) {
+    static synchronized void sendAction(@NonNull MMVPAction action, long delayMills) {
         if (null == action.getAction()
                 || TextUtils.isEmpty(action.getAction().getAction())
                 || null == action.getSourceClass()
