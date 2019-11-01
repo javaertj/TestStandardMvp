@@ -315,9 +315,9 @@ public final class MMVPArtist {
                 MMVPPresenter presenter = presenterClass.newInstance();
                 presenterLinkedList.add(presenter);
             } catch (InstantiationException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Register failed : ", e);
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Register failed : ", e);
             }
         }
         VIEW_CACHE.add(view);
